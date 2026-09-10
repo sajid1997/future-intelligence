@@ -1,7 +1,8 @@
+require("dotenv").config();
+
 const pool = require("./db");
 const express = require("express");
 const cors = require("cors");
-require("dotenv").config();
 
 const { askAI, generateForecast } = require("./services/ai");
 
@@ -37,7 +38,6 @@ app.post("/api/queries", async (req, res) => {
       });
     }
 
-    // 1. Save research question
     const queryResult = await pool.query(
       `
       INSERT INTO research_queries (question)
@@ -49,10 +49,8 @@ app.post("/api/queries", async (req, res) => {
 
     const query = queryResult.rows[0];
 
-    // 2. Generate AI forecast
     const forecast = await generateForecast(question);
 
-    // 3. Save AI forecast
     const predictionResult = await pool.query(
       `
       INSERT INTO predictions
@@ -75,14 +73,12 @@ app.post("/api/queries", async (req, res) => {
       ]
     );
 
-    // 4. Return both query and prediction
     res.json({
       query: query,
       prediction: predictionResult.rows[0]
     });
 
   } catch (error) {
-
     console.error(
       "Error creating forecast:",
       error.message
@@ -94,13 +90,13 @@ app.post("/api/queries", async (req, res) => {
   }
 });
 
+
 // =========================
 // GET ALL RESEARCH QUERIES
 // =========================
 
 app.get("/api/queries", async (req, res) => {
   try {
-
     const result = await pool.query(
       `
       SELECT *
@@ -112,7 +108,6 @@ app.get("/api/queries", async (req, res) => {
     res.json(result.rows);
 
   } catch (error) {
-
     console.error(
       "Error fetching queries:",
       error.message
@@ -131,7 +126,6 @@ app.get("/api/queries", async (req, res) => {
 
 app.post("/api/predictions", async (req, res) => {
   try {
-
     const {
       query_id,
       prediction,
@@ -171,7 +165,6 @@ app.post("/api/predictions", async (req, res) => {
     res.json(result.rows[0]);
 
   } catch (error) {
-
     console.error(
       "Error saving prediction:",
       error.message
@@ -190,7 +183,6 @@ app.post("/api/predictions", async (req, res) => {
 
 app.get("/api/predictions/:queryId", async (req, res) => {
   try {
-
     const { queryId } = req.params;
 
     const result = await pool.query(
@@ -206,7 +198,6 @@ app.get("/api/predictions/:queryId", async (req, res) => {
     res.json(result.rows);
 
   } catch (error) {
-
     console.error(
       "Error fetching predictions:",
       error.message
@@ -225,7 +216,6 @@ app.get("/api/predictions/:queryId", async (req, res) => {
 
 app.post("/api/ai/test", async (req, res) => {
   try {
-
     const { prompt } = req.body;
 
     if (!prompt || !prompt.trim()) {
@@ -241,7 +231,6 @@ app.post("/api/ai/test", async (req, res) => {
     });
 
   } catch (error) {
-
     console.error(
       "AI Error:",
       error.message
@@ -259,16 +248,12 @@ app.post("/api/ai/test", async (req, res) => {
 // =========================
 
 pool.query("SELECT NOW()", (err) => {
-
   if (err) {
-
     console.error(
       "Database connection failed:",
       err.message
     );
-
   } else {
-
     console.log(
       "Database connected successfully!"
     );
@@ -280,12 +265,8 @@ pool.query("SELECT NOW()", (err) => {
 // START SERVER
 // =========================
 
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-
-  console.log(
-    `Server running on http://localhost:${PORT}`
-  );
-
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Server running on port ${PORT}`);
 });
